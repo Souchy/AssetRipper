@@ -54,6 +54,8 @@ public sealed record class ExportSettings
 
 	public string? LanguageCode { get; set; }
 
+	public string[] CollectionsToExport { get; set; } = Array.Empty<string>();
+
 	public void Log()
 	{
 		Logger.Info(LogCategory.General, $"{nameof(AudioExportFormat)}: {AudioExportFormat}");

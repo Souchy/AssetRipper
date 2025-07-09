@@ -6,6 +6,7 @@ using AssetRipper.Export.PrimaryContent.DeletedAssets;
 using AssetRipper.Export.PrimaryContent.Models;
 using AssetRipper.Export.PrimaryContent.Scripts;
 using AssetRipper.Export.PrimaryContent.Textures;
+using AssetRipper.Export.UnityProjects.Configuration;
 using AssetRipper.Import.Configuration;
 using AssetRipper.Import.Logging;
 using AssetRipper.Processing;
@@ -124,37 +125,49 @@ public sealed class PrimaryContentExporter
 		RegisterHandler<IUnityObjectBase>(DeletedAssetsExporter.Instance);
 	}
 
-	public void Export(GameBundle fileCollection, CoreConfiguration options, FileSystem fileSystem)
+	public void Export(GameBundle fileCollection, LibraryConfiguration settings, FileSystem fileSystem)
 	{
-		List<ExportCollectionBase> collections = CreateCollections(fileCollection);
+		List<ExportCollectionBase> collections = CreateCollections(fileCollection, settings);
 
-		for (int i = 0; i < collections.Count; i++)
+		Parallel.For(0, collections.Count, i =>
 		{
 			ExportCollectionBase collection = collections[i];
 			if (collection.Exportable)
 			{
-				Logger.Info(LogCategory.ExportProgress, $"({i + 1}/{collections.Count}) Exporting '{collection.Name}'");
-				bool exportedSuccessfully = collection.Export(options.ExportRootPath, fileSystem);
+				//Logger.Info(LogCategory.ExportProgress, $"({i + 1}/{collections.Count}) Exporting '{collection.Name}'");
+				bool exportedSuccessfully = collection.Export(settings.ExportRootPath, fileSystem);
 				if (!exportedSuccessfully)
 				{
 					Logger.Warning(LogCategory.ExportProgress, $"Failed to export '{collection.Name}'");
 				}
 			}
-		}
+		});
 	}
 
-	private List<ExportCollectionBase> CreateCollections(GameBundle fileCollection)
+	private List<ExportCollectionBase> CreateCollections(GameBundle fileCollection, LibraryConfiguration settings)
 	{
 		List<ExportCollectionBase> collections = new();
 		HashSet<IUnityObjectBase> queued = new();
+		var assets = fileCollection.FetchAssets();
+		var classes = assets.DistinctBy(a => a.ClassName).ToList();
+		var actualclasses = classes.Select(a => a.ClassName).ToList();
+		//Logger.Info(LogCategory.ExportProgress, $"Found {assets.Count()} assets of {classes.Count} " +
+		//	$"types: {string.Join(", ", classes.Select(a => a.ClassName))}");
 
-		foreach (IUnityObjectBase asset in fileCollection.FetchAssets())
+		// Only export collections that are specified in the settings
+		if (settings.ExportSettings.CollectionsToExport.Length > 0)
 		{
-			if (!queued.Add(asset))
-			{
-				// Skip duplicates
-				continue;
-			}
+			assets = assets.Where(a => settings.ExportSettings.CollectionsToExport.Contains(a.ClassName));
+		}
+		assets = assets.Distinct();
+
+		foreach (IUnityObjectBase asset in assets)
+		{
+			//if (!queued.Add(asset))
+			//{
+			//	// Skip duplicates
+			//	continue;
+			//}
 
 			ExportCollectionBase collection = CreateCollection(asset);
 			if (collection is EmptyExportCollection)

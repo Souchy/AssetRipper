@@ -73,6 +73,7 @@ public static class GameFileLoader
 			Logger.Info(LogCategory.Export, "Starting primary content export");
 			Logger.Info(LogCategory.Export, $"Attempting to export assets to {path}...");
 			Settings.ExportRootPath = path;
+
 			PrimaryContentExporter.CreateDefault(GameData).Export(GameBundle, Settings, LocalFileSystem.Instance);
 			Logger.Info(LogCategory.Export, "Finished exporting primary content.");
 		}
