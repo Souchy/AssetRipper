@@ -32,26 +32,45 @@ jobs:
     - name: Build
       run: dotnet build Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release
 
-    - name: Publish binaries
-      run: dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release --output ./publish --self-contained --runtime ${{ matrix.runtime }} /p:PublishSingleFile=true 
-#/p:PublishTrimmed=true
-
-    - name: Archive binaries
-      uses: actions/upload-artifact@v4
+    - name: Publish self-contained binary
+      run: |
+        dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj \
+          --no-restore \
+          --configuration Release \
+          --runtime ${{ matrix.runtime }} \
+          --self-contained true \
+          /p:PublishSingleFile=true \
+          --output ./publish-${{ matrix.runtime }}
+    
+    - name: Upload to GitHub Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: AssetRipper_CLI_${{ matrix.runtime }}
-        path: ./publish
+        files: publish-${{ matrix.runtime }}/AssetRipper.CLI${{ matrix.ext }}
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  create_release:
-    needs: export_assetripper_cli
-    runs-on: ubuntu-latest
-    steps:
-    - name: Create release
-      uses: ncipollo/release-action@v1.12.0
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: ${{ steps.export.outputs.archive_directory }}/*
-        tag: "nightly"
-        generateReleaseNotes: true
-        makeLatest: true
-        allowUpdates: true
+#     - name: Publish binaries
+#       run: dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release --output ./publish --self-contained --runtime ${{ matrix.runtime }} /p:PublishSingleFile=true 
+# #/p:PublishTrimmed=true
+
+  #   - name: Archive binaries
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: AssetRipper_CLI_${{ matrix.runtime }}
+  #       path: ./publish
+
+  # create_release:
+  #   needs: export_assetripper_cli
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Create release
+  #     uses: ncipollo/release-action@v1.12.0
+  #     with:
+  #       token: ${{ secrets.GITHUB_TOKEN }}
+  #       artifacts: ${{ steps.export.outputs.archive_directory }}/*
+  #       tag: "nightly"
+  #       generateReleaseNotes: true
+  #       makeLatest: true
+  #       allowUpdates: true
