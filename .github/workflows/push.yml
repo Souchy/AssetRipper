@@ -7,16 +7,18 @@ on:
 
 jobs:
   export_assetripper_cli:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     permissions: write-all
-    name: Export AssetRipper.CLI
+    name: Export AssetRipper.CLI ${{ matrix.runtime }}
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
             runtime: linux-x64
+            ext: ""
           - os: windows-latest
             runtime: win-x64
+            ext: ".exe"
     steps:
     - name: checkout
       uses: actions/checkout@v3.3.0
