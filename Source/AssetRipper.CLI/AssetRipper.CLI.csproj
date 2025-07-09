@@ -7,6 +7,9 @@
     <Nullable>enable</Nullable>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
+	  
+	<RuntimeIdentifier>linux-x64</RuntimeIdentifier> <!-- Target Linux runtime -->
+	<SelfContained>true</SelfContained> <!-- Include .NET runtime -->
   </PropertyGroup>
 
   <ItemGroup>

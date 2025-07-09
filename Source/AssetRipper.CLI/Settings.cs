@@ -13,7 +13,7 @@ public class Settings
 	public string UnityVersion { get; set; } = "2020.3.0f1";
 
 	[Option('i', "input", Required = false, HelpText = "Input file (*.bundle)")]
-	public string PathInputFile { get; set; }
+	public string PathInput { get; set; }
 
 	[Option('o', "output", Required = false, HelpText = "Output directory")]
 	public string PathOutputDir { get; set; }

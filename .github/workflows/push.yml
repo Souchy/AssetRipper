@@ -1,0 +1,45 @@
+name: Generate binaries and create a Release on merge
+
+on:
+  workflow_dispatch:
+  push: 
+    branches: ["main", "master"]
+
+jobs:
+  export_game:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    name: Export Game
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3.3.0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore Source/AssetRipper.CLI/AssetRipper.CLI.csproj
+
+    - name: Build
+      run: dotnet build Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release
+
+    - name: Publish binaries
+      run: dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release --output ./publish --self-contained --runtime linux-x64
+
+    - name: Archive binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: AssetRipper_CLI
+        path: ./publish
+
+    - name: Create release
+      uses: ncipollo/release-action@v1.12.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: AssetRipper_CLI
+        tag: "nightly"
+        generateReleaseNotes: true
+        makeLatest: true
+        allowUpdates: true

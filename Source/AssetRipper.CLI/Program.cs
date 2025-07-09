@@ -23,9 +23,35 @@ internal class Program
 			Console.WriteLine("Invalid export path specified.");
 			return;
 		}
-		if (settings.PathInputFile is null || !File.Exists(settings.PathInputFile))
+
+		string[] inputs = settings.PathInput.Split(",");
+		List<string> inputBundles = new();
+		foreach (string input in inputs)
 		{
-			Console.WriteLine("Invalid input file.");
+			if (File.Exists(input))
+			{
+				inputBundles.Add(input);
+			}
+			else if (Directory.Exists(input))
+			{
+				string[] files = Directory.GetFiles(input, "*.bundle", SearchOption.AllDirectories);
+				if (files.Length > 0)
+				{
+					inputBundles.AddRange(files);
+				}
+				else
+				{
+					Console.WriteLine($"No .bundle files found in directory '{input}'.");
+				}
+			}
+			else
+			{
+				Console.WriteLine($"Input file '{input}' does not exist.");
+			}
+		}
+		if (inputBundles.Count == 0)
+		{
+			Console.WriteLine("No valid input files found.");
 			return;
 		}
 
@@ -42,7 +68,7 @@ internal class Program
 			GameFileLoader.Settings.ExportSettings.CollectionsToExport = settings.Types.Split(",");
 
 			// process and export
-			GameFileLoader.LoadAndProcess([settings.PathInputFile]);
+			GameFileLoader.LoadAndProcess(inputBundles);
 			GameFileLoader.ExportPrimaryContent(settings.PathOutputDir);
 			Console.WriteLine("Export completed successfully.");
 		}
