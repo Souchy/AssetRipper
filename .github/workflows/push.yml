@@ -26,19 +26,19 @@ jobs:
       run: dotnet build Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release
 
     - name: Publish binaries
-      run: dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release --output ./publish --self-contained --runtime linux-x64
+      run: dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release --output ./publish --self-contained --runtime linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true
 
     - name: Archive binaries
       uses: actions/upload-artifact@v4
       with:
-        name: AssetRipper_CLI
+        name: AssetRipper_CLI_Binaries
         path: ./publish
 
     - name: Create release
       uses: ncipollo/release-action@v1.12.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: AssetRipper_CLI
+        artifacts: ${{ steps.export.outputs.archive_directory }}/*
         tag: "nightly"
         generateReleaseNotes: true
         makeLatest: true
