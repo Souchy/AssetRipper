@@ -29,7 +29,7 @@ jobs:
       run: dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release --output ./publish --self-contained --runtime linux-x64
 
     - name: Archive binaries
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: AssetRipper_CLI
         path: ./publish
