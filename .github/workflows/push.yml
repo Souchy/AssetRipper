@@ -6,10 +6,14 @@ on:
     branches: ["main", "master"]
 
 jobs:
-  export_game:
+  export_assetripper_cli:
     runs-on: ubuntu-latest
     permissions: write-all
-    name: Export Game
+    name: Export AssetRipper.CLI
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        runtime: [linux-x64, win-x64]
     steps:
     - name: checkout
       uses: actions/checkout@v3.3.0
@@ -26,14 +30,19 @@ jobs:
       run: dotnet build Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release
 
     - name: Publish binaries
-      run: dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release --output ./publish --self-contained --runtime linux-x64 /p:PublishSingleFile=true /p:PublishTrimmed=true
+      run: dotnet publish Source/AssetRipper.CLI/AssetRipper.CLI.csproj --no-restore --configuration Release --output ./publish --self-contained --runtime ${{ matrix.runtime }} /p:PublishSingleFile=true 
+#/p:PublishTrimmed=true
 
     - name: Archive binaries
       uses: actions/upload-artifact@v4
       with:
-        name: AssetRipper_CLI_Binaries
+        name: AssetRipper_CLI_${{ matrix.runtime }}
         path: ./publish
 
+  create_release:
+    needs: export_assetripper_cli
+    runs-on: ubuntu-latest
+    steps:
     - name: Create release
       uses: ncipollo/release-action@v1.12.0
       with:
