@@ -7,7 +7,7 @@ on:
 
 jobs:
   export_assetripper_cli:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     permissions: write-all
     name: Export AssetRipper.CLI ${{ matrix.runtime }}
     strategy:
